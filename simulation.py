@@ -38,7 +38,7 @@ class Simulation:
         pass
 
     def failure(self, pos):
-        """cosa facciamo in caso di una failure dle lampione in posizione pos
+        """cosa facciamo in caso di una failure del lampione in posizione pos
         --> aumento l'intensità dei vicini
 
 

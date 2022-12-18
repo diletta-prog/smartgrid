@@ -1,18 +1,35 @@
 class Lamp:
-    """ lampione, con diversi attributi:
+    """ 
+    lampione, con diversi attributi:
     --> id
-    -->posizione nella matrice
-    -->livello di intensità luminosa]
-    --> stato [funzionante/ non funzionante]
-    --> lista dei vicini
+    --> posizione nella matrice
+    --> livello di intensità luminosa
+    --> stato [funzionante / non funzionante]
+    --> lista dei lampioni vicini
+    
     """
 
     def __init__(self, id, pos, lev=0, stato='on'):
-        self.id = id
-        self.pos = pos
-        self.lev = lev
-        self.state = stato
-        self.neigh = []
+        self.id = id    # id 
+        self.pos = pos  # posizione nella matrice
+        self.lev = lev  #livello intensità
+        self.state = stato  # stato
+        self.neigh = [] # ID lampioni vicini
+        
+    def getPos(self):
+        return self.pos[0], self.pos[1]
+
+    def getLevel(self):
+        return self.lev
+
+    def getState(self):
+        return self.state
+
+    def getID(self):
+        return self.id
+
+    def getNeigh(self):
+        return self.neigh
 
     def setLevel(self, newLevel):
         self.lev = newLevel
