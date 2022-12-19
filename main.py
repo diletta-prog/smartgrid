@@ -28,6 +28,6 @@ if __name__ == '__main__':
 
     # print(prova.matrix[2][2].neigh)
     '''--->simulazione'''
-    duration = 100
+    duration = 50000000
     sim = Simulation(duration, prova)
     sim.start()

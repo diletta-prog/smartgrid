@@ -40,7 +40,7 @@ class City:
             pass
         try:
             if y - 1 >= 0:
-                lamp.addNeigh('left', self.matrix[x][y - 1],self.matrix[x][y - 1],id)
+                lamp.addNeigh('left', self.matrix[x][y - 1],self.matrix[x][y - 1].id)
         except:
             pass
         try:
@@ -49,10 +49,19 @@ class City:
             pass
         lamp.checkIntersection()
 
+
+
+
+
+
     def updateState(self, newBaseValue):
         """ aggiorniamo il valore base di tutti i lampioni, li resettiamo tutti al valore base !!! sbagliato"""
         for lamp in self.matrix[self.matrix != None]:
             lamp.setLevel(newBaseValue)
+
+
+
+
 
     def searchLampById(self, id):
         for lamp in self.matrix[self.matrix != None]:

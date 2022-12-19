@@ -5,7 +5,7 @@ import random as rd
 
 class Simulation:
 
-    def __init__(self, duration, city, arrival_parameter=25, fail_parameter=1 / 500, shift_parameter=0.5, seed=0):
+    def __init__(self, duration, city, arrival_parameter=25, fail_parameter=500, shift_parameter=0.5, seed=0):
         self.duration = duration
         self.clock = 0
         self.seed = seed
@@ -28,10 +28,11 @@ class Simulation:
         """ cuore della simulazione, prende iterativamente elementi dalla fes e agisce in base al tipo di evento """
         lamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
         self.fes.put((0, self.arrival, (lamp, choice(list(lamp.neigh.keys())), randint(3, 10))))  # primo elemento
-
+        lamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
+        self.fes.put((50, self.failure, lamp))
         while self.clock < self.duration:
-            (self.clock, event, attr) = self.fes.get()
-            event(attr)
+                (self.clock, event, attr) = self.fes.get()
+                event(attr)
 
 
 
@@ -63,17 +64,23 @@ class Simulation:
         for neigh in lamp.neigh.values():
             neigh.setLevel(1.2 * self.base_value)
 
-        """--->scheulo il prossimo shift"""
-        nextLamp = lamp.neigh[direction]
-        self.fes.put((self.clock + expovariate(1.0 / self.shift_parameter), self.shift, (
-            nextLamp, choice(list(filter(lambda x: x != self.opposite(direction), nextLamp.neigh.keys()))),
-            ttl - 1)))
+        """--->schedulo il prossimo shift"""
+        try:
+            nextLamp = lamp.neigh[direction]
+            self.fes.put((self.clock + expovariate(1.0 / self.shift_parameter), self.shift, (
+                nextLamp, choice(list(filter(lambda x: x != self.opposite(direction), nextLamp.neigh.keys()))),
+                ttl - 1)))
+        except: pass
+
 
         """--> schedulo il next arrival"""
-        nextLamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
-        self.fes.put((self.clock + expovariate(1.0 / self.arrival_parameter), self.arrival,
-                      (nextLamp, choice(list(nextLamp.neigh.keys())),
+        nextArrival = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
+        try:
+           self.fes.put((self.clock + expovariate(1.0 / self.arrival_parameter), self.arrival,
+                      (nextArrival, choice(list(nextArrival.neigh.keys())),
                        randint(3, 10))))
+        except:
+           print(nextArrival.id,nextArrival.neigh)
 
 
 
@@ -81,16 +88,20 @@ class Simulation:
 
 
 
-    def failure(self, **kwargs):
+
+    def failure(self, attributes):
         """cosa facciamo in caso di una failure del lampione in posizione pos
-        --> aumento l'intensità dei vicini
+        --> aumento l'intensità dei vicini"""
+        lamp= attributes
+        for neigh in lamp.neigh.values():
+            neigh.setLevel(1.2 * self.base_value)
+        """---> schedulo il next fail"""
+        nextLamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
+        self.fes.put((self.clock + expovariate(1.0 / self.fail_parameter), self.failure,nextLamp))
 
 
-    dipende dal verso della strada
 
 
-        --> schedulo il next fail """
-        self.fes.put((self.clock + expovariate(1.0 / self.fail_parameter), "failure", randint(0, self.city.lampsCount)))
 
     def dailyUpdate(self):
         """ aggiorniamo il valore  base value"""
