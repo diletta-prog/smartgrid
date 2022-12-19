@@ -21,14 +21,10 @@ if __name__ == '__main__':
 
     prova=City(np.array(m))
 
-    prova.addLamp()
-    #prova.setLampState(0,0)
-    #print(prova.matrix)
-    #print(prova.lamps[0].state)
-    #print(prova.matrix[0][0].state)
-    pos=[5,6]
-    print(prova.exctNeigh(pos))
-    print(prova.matrix[5][6].getNeigh())
+    prova.build()
+
+    print(prova.matrix[2][2].neigh)
+
 
 
 

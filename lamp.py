@@ -14,7 +14,7 @@ class Lamp:
         self.pos = pos  # posizione nella matrice
         self.lev = lev  #livello intensità
         self.state = stato  # stato
-        self.neigh = [] # ID lampioni vicini
+        self.neigh = {} # ID lampioni vicini
         
     def getPos(self):
         return self.pos[0], self.pos[1]
@@ -28,8 +28,8 @@ class Lamp:
     def getID(self):
         return self.id
 
-    def getNeigh(self):
-        return self.neigh
+    def getNeigh(self,pos):
+        return self.neigh[pos]
 
     def setLevel(self, newLevel):
         self.lev = newLevel
@@ -37,5 +37,8 @@ class Lamp:
     def setState(self, newState):
         self.state = newState
 
-    def addNeigh(self, newNeigh):
-        self.neigh.append(newNeigh)
+    def addNeigh(self,pos, newNeigh):
+        self.neigh[pos]=newNeigh
+
+    def checkIntersection(self):
+        pass
