@@ -18,12 +18,6 @@ class Simulation:
         self.shift_parameter = shift_parameter
         rd.seed(seed)
 
-
-
-
-
-
-
     def start(self):
         """ cuore della simulazione, prende iterativamente elementi dalla fes e agisce in base al tipo di evento """
         lamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
@@ -31,13 +25,8 @@ class Simulation:
         lamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
         self.fes.put((50, self.failure, lamp))
         while self.clock < self.duration:
-                (self.clock, event, attr) = self.fes.get()
-                event(attr)
-
-
-
-
-
+            (self.clock, event, attr) = self.fes.get()
+            event(attr)
 
     def shift(self, attributes):
         lamp, direction, ttl = attributes
@@ -51,10 +40,6 @@ class Simulation:
                         ttl - 1)))
             except:
                 pass
-
-
-
-
 
     def arrival(self, attributes):
 
@@ -70,21 +55,17 @@ class Simulation:
             self.fes.put((self.clock + expovariate(1.0 / self.shift_parameter), self.shift, (
                 nextLamp, choice(list(filter(lambda x: x != self.opposite(direction), nextLamp.neigh.keys()))),
                 ttl - 1)))
-        except: pass
-
+        except:
+            pass
 
         """--> schedulo il next arrival"""
         nextArrival = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
         try:
-           self.fes.put((self.clock + expovariate(1.0 / self.arrival_parameter), self.arrival,
-                      (nextArrival, choice(list(nextArrival.neigh.keys())),
-                       randint(3, 10))))
+            self.fes.put((self.clock + expovariate(1.0 / self.arrival_parameter), self.arrival,
+                          (nextArrival, choice(list(nextArrival.neigh.keys())),
+                           randint(3, 10))))
         except:
-           print(nextArrival.id,nextArrival.neigh)
-
-
-
-
+            print(nextArrival.id, nextArrival.neigh)
 
 
 
@@ -92,16 +73,12 @@ class Simulation:
     def failure(self, attributes):
         """cosa facciamo in caso di una failure del lampione in posizione pos
         --> aumento l'intensità dei vicini"""
-        lamp= attributes
+        lamp = attributes
         for neigh in lamp.neigh.values():
             neigh.setLevel(1.2 * self.base_value)
         """---> schedulo il next fail"""
         nextLamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
-        self.fes.put((self.clock + expovariate(1.0 / self.fail_parameter), self.failure,nextLamp))
-
-
-
-
+        self.fes.put((self.clock + expovariate(1.0 / self.fail_parameter), self.failure, nextLamp))
 
     def dailyUpdate(self):
         """ aggiorniamo il valore  base value"""
