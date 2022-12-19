@@ -17,27 +17,26 @@ class City:
 
 
     def build(self):
-        """ istanzion tutti i lampioni """
+        """ istanzio tutti i lampioni """
         for x, y in product(range(self.matrixRaw.shape[0]), range(self.matrixRaw.shape[1])):
             if self.matrixRaw[x][y]: self.addLamp((x, y))
         """ per ogni lampione, mi salvo i vicini"""
         for lamp in self.matrix[self.matrix != None]:
-            self.checkNeigh(lamp, np.where(self.matrix == lamp))
+            self.checkNeighs(lamp, np.where(self.matrix == lamp))
 
 
 
 
     def addLamp(self, pos):
         """creo la matrice di lampioni partendo da quella di 1 e 0"""
-        newLamp = Lamp(self.lampsCount, pos)
-        self.matrix[pos[0]][pos[1]] = newLamp  # inserisco oggetto lampione
+        self.matrix[pos[0]][pos[1]] = Lamp(self.lampsCount, pos)  # inserisco oggetto lampione
         self.lampsCount += 1  # incremento numero lampioni
 
 
 
 
 
-    def checkNeigh(self, lamp, pos):
+    def checkNeighs(self, lamp, pos):
 
         x = pos[0][0]
         y = pos[1][0]
