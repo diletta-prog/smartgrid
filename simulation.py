@@ -96,17 +96,17 @@ class Simulation:
         """ aggiorniamo il valore  base value"""
         if self.dati['meteo'] == 'sole':
             self.base_value = 50
-        if self.dati['meteo'] == 'pioggia/temporale':
+        if self.dati['meteo'] == 'pioggia temporale ':
             self.base_value = 60
-        if self.dati['meteo'] == 'pioggia/neve':
+        if self.dati['meteo'] == 'pioggia neve ':
             self.base_value = 70
-        if self.dati['meteo'] == 'pioggia/nebbia':
+        if self.dati['meteo'] == 'pioggia nebbia ':
             self.base_value = 80
-        if self.dati['meteo'] == 'pioggia':
+        if self.dati['meteo'] == 'pioggia ':
             self.base_value = 85
-        if self.dati['meteo'] == 'neve/nebbia':
+        if self.dati['meteo'] == 'neve nebbia ':
             self.base_value = 90
-        if self.dati['meteo'] == 'nebbia':
+        if self.dati['meteo'] == 'nebbia ':
             self.base_value = 95
         self.city.updateState()
 
