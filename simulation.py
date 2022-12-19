@@ -1,18 +1,18 @@
 from queue import PriorityQueue
 from random import randint, expovariate, choice, seed
 import random as rd
-
+import pandas as pd
 
 class Simulation:
 
-    def __init__(self, duration, city, arrival_parameter=25, fail_parameter=1 / 500, shift_parameter=0.5, seed=0):
+    def __init__(self, duration, city, arrival_parameters=25, fail_parameter=1 / 500, shift_parameter=0.5, seed=0):
         self.duration = duration
         self.clock = 0
         self.seed = seed
         self.city = city
         self.fes = PriorityQueue()  # nella mia fes posso avere due tipi di eventi : arrivo di una macchina o un fail
         # del lampione
-        self.arrival_parameter = arrival_parameter
+        self.arrival_parameters = arrival_parameters
         self.fail_parameter = fail_parameter
         self.base_value = 0
         self.shift_parameter = shift_parameter
@@ -71,7 +71,11 @@ class Simulation:
 
         """--> schedulo il next arrival"""
         nextLamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
-        self.fes.put((self.clock + expovariate(1.0 / self.arrival_parameter), self.arrival,
+        for _, el in self.arrival_parameters.iterrows():
+            if self.clock < el['range']: 
+                arrival_parameter = el['lambda']
+                break
+        self.fes.put((self.clock + expovariate(arrival_parameter), self.arrival,
                       (nextLamp, choice(list(nextLamp.neigh.keys())),
                        randint(3, 10))))
 
