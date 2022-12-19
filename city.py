@@ -7,14 +7,12 @@ import numpy as np
 class City:
     """ matrice sparsa dove alcuni nodi corrispondono a lampioni """
 
-    def __init__(self, m):
+    def __init__(self, m, dati):
         self.lampsCount = 0  # numero i lampioni
         self.matrixRaw = m == 1  # mi salvo la matrice grezza con 0 e 1
         self.matrix = np.empty(shape=np.shape(m), dtype=object)  # matrice di oggetti che saranno lampioni
+        self.dati = dati
         pass
-
-
-
 
     def build(self):
         """ istanzio tutti i lampioni """
@@ -24,38 +22,39 @@ class City:
         for lamp in self.matrix[self.matrix != None]:
             self.checkNeighs(lamp, np.where(self.matrix == lamp))
 
-
-
-
     def addLamp(self, pos):
-        """creo la matrice di lampioni partendo da quella di 1 e 0"""
         self.matrix[pos[0]][pos[1]] = Lamp(self.lampsCount, pos)  # inserisco oggetto lampione
         self.lampsCount += 1  # incremento numero lampioni
 
-
-
-
-
     def checkNeighs(self, lamp, pos):
-
         x = pos[0][0]
         y = pos[1][0]
         try:
-            if x - 1 >= 0:
-                lamp.addNeigh('up', self.matrix[x - 1][y].id)
+            if x - 1 >= 0 :
+                lamp.addNeigh('up', self.matrix[x - 1][y], self.matrix[x - 1][y].id)
         except:
             pass
         try:
-            lamp.addNeigh('down', self.matrix[x + 1][y].id)
+            lamp.addNeigh('down', self.matrix[x + 1][y],self.matrix[x + 1][y].id)
         except:
             pass
         try:
             if y - 1 >= 0:
-                lamp.addNeigh('left', self.matrix[x][y - 1].id)
+                lamp.addNeigh('left', self.matrix[x][y - 1],self.matrix[x][y - 1],id)
         except:
             pass
         try:
-            lamp.addNeigh('right', self.matrix[x][y + 1].id)
+            lamp.addNeigh('right', self.matrix[x][y + 1],self.matrix[x][y + 1].id)
         except:
             pass
         lamp.checkIntersection()
+
+    def updateState(self, newBaseValue):
+        """ aggiorniamo il valore base di tutti i lampioni, li resettiamo tutti al valore base !!! sbagliato"""
+        for lamp in self.matrix[self.matrix != None]:
+            lamp.setLevel(newBaseValue)
+
+    def searchLampById(self, id):
+        for lamp in self.matrix[self.matrix != None]:
+            if lamp.id == id:
+                return lamp

@@ -37,7 +37,7 @@ class Lamp:
     def setState(self, newState):
         self.state = newState
 
-    def addNeigh(self,pos, newNeigh):
+    def addNeigh(self,pos, newNeigh,id):
         self.neigh[pos]=newNeigh
 
     def checkIntersection(self):

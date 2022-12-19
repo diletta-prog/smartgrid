@@ -1,10 +1,11 @@
 from queue import PriorityQueue
-from random import randint, expovariate
+from random import randint, expovariate, choice, seed
+import random as rd
 
 
 class Simulation:
 
-    def __init__(self, duration, city, arrival_parameter, fail_parameter, seed=0):
+    def __init__(self, duration, city, arrival_parameter=25, fail_parameter=1 / 500, shift_parameter=0.5, seed=0):
         self.duration = duration
         self.clock = 0
         self.seed = seed
@@ -13,34 +14,104 @@ class Simulation:
         # del lampione
         self.arrival_parameter = arrival_parameter
         self.fail_parameter = fail_parameter
+        self.base_value = 0
+        self.shift_parameter = shift_parameter
+        rd.seed(seed)
+
+
+
+
+
+
 
     def start(self):
         """ cuore della simulazione, prende iterativamente elementi dalla fes e agisce in base al tipo di evento """
+        lamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
+        self.fes.put((0, self.arrival, (lamp, choice(list(lamp.neigh.keys())), randint(3, 10))))  # primo elemento
 
-        lamp = randint(0, self.city.lampsCount)
-        self.fes.put((0, "arrival", lamp))  # primo elemento
         while self.clock < self.duration:
-            (self.clock, event_type, lamp) = self.fes.get()
-            if event_type == 'arrival':
-                self.arrival(lamp)
-            if event_type == 'failure':
-                self.failure(lamp)
-
-    def arrival(self, lamp):
-        """cosa facciamo in caso di un arrivo (macchina o pedone) in posizione pos
-        --> aumento l'intensità del lampione e dei vicini
+            (self.clock, event, attr) = self.fes.get()
+            event(attr)
 
 
 
-        --> schedulo il next arrival"""
-        self.fes.put((self.clock + expovariate(1.0 / self.arrival_parameter), "arrival",
-                      randint(0, self.city.lampsCount)))
-        pass
 
-    def failure(self, pos):
+
+
+    def shift(self, attributes):
+        lamp, direction, ttl = attributes
+        if ttl > 0:  # controllo se la macchina ha ancora time to live
+            nextLamp = lamp.neigh[direction]
+            nextLamp.setLevel(1.2 * self.base_value)
+            try:  # next shift
+                self.fes.put(
+                    (self.clock + expovariate(1.0 / self.shift_parameter), self.shift, (
+                        nextLamp, choice(list(filter(lambda x: x != self.opposite(direction), nextLamp.neigh.keys()))),
+                        ttl - 1)))
+            except:
+                pass
+
+
+
+
+
+    def arrival(self, attributes):
+
+        """--->setto la luminosità di tutti i lampioni intorno"""
+        lamp, direction, ttl = attributes
+        lamp.setLevel(1.2 * self.base_value)
+        for neigh in lamp.neigh.values():
+            neigh.setLevel(1.2 * self.base_value)
+
+        """--->scheulo il prossimo shift"""
+        nextLamp = lamp.neigh[direction]
+        self.fes.put((self.clock + expovariate(1.0 / self.shift_parameter), self.shift, (
+            nextLamp, choice(list(filter(lambda x: x != self.opposite(direction), nextLamp.neigh.keys()))),
+            ttl - 1)))
+
+        """--> schedulo il next arrival"""
+        nextLamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
+        self.fes.put((self.clock + expovariate(1.0 / self.arrival_parameter), self.arrival,
+                      (nextLamp, choice(list(nextLamp.neigh.keys())),
+                       randint(3, 10))))
+
+
+
+
+
+
+
+    def failure(self, **kwargs):
         """cosa facciamo in caso di una failure del lampione in posizione pos
         --> aumento l'intensità dei vicini
 
 
+    dipende dal verso della strada
+
+
         --> schedulo il next fail """
         self.fes.put((self.clock + expovariate(1.0 / self.fail_parameter), "failure", randint(0, self.city.lampsCount)))
+
+    def dailyUpdate(self):
+        """ aggiorniamo il valore  base value"""
+        if self.dati['meteo'] == 'sole':
+            self.base_value = 50
+        if self.dati['meteo'] == 'pioggia/temporale':
+            self.base_value = 60
+        if self.dati['meteo'] == 'pioggia/neve':
+            self.base_value = 70
+        if self.dati['meteo'] == 'pioggia/nebbia':
+            self.base_value = 80
+        if self.dati['meteo'] == 'pioggia':
+            self.base_value = 85
+        if self.dati['meteo'] == 'neve/nebbia':
+            self.base_value = 90
+        if self.dati['meteo'] == 'nebbia':
+            self.base_value = 95
+        self.city.updateState()
+
+    def opposite(self, dir):
+        if dir == 'left': return 'right'
+        if dir == 'rigth': return 'left'
+        if dir == 'up': return 'down'
+        if dir == 'down': return 'up'
