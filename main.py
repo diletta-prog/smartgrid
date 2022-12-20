@@ -1,4 +1,5 @@
 from city import City
+from scheduler import Scheduler
 from simulation import Simulation
 import numpy as np
 import pandas as pd
@@ -24,12 +25,14 @@ if __name__ == '__main__':
 
     m2 = [[1, 0, 0], [1, 0, 0], [1, 0, 0]]
 
-    prova = City(np.array(m),dati)
-
+    prova = City(np.array(m), dati)
+    fail=50000
+    repair=200
+    schedules = Scheduler(dati, shif_pars, lbd, fail, repair)
     prova.build()
 
     # print(prova.matrix[2][2].neigh)
     '''--->simulazione'''
-    duration = 3600*24 # 1 gg
-    sim = Simulation(dati, duration, prova, lbd, shif_pars)
+    duration = 3600   # 1 ora
+    sim = Simulation(schedules, duration, prova)
     sim.start()
