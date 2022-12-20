@@ -27,6 +27,15 @@ class Lamp:
         self.time_on = 0    # orario di accensione
 
 
+    def setTimeOn(self,clock):
+        self.time_on = clock
+
+    def getPowerUtilization(self):
+        return self.power_utilization
+
+    def getUtilization(self):
+        return self.utilization
+
     def getPos(self):
         return self.pos[0], self.pos[1]
 
@@ -52,7 +61,9 @@ class Lamp:
                 self.busy -=1
         
 
-    def setLevel(self, newLevel):
+    def setLevel(self, newLevel, clock):
+        self.consumption(clock)
+        self.setTimeOn(clock)
         self.lev = newLevel
 
     def setState(self, newState):
@@ -74,4 +85,4 @@ class Lamp:
 
     def consumption(self, clock):
         self.utilization += (clock-self.time_on)
-        self.power_utilization += (clock-self.time_on)*(self.lev/100*self.power_max)
+        self.power_utilization += (clock-self.time_on)/3600*(self.lev/100*self.power_max)

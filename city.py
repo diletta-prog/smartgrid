@@ -58,10 +58,10 @@ class City:
         return self.searchLampById(randint(0, self.lampsCount - 1))
 
 
-    def updateState(self, newBaseValue):
-        """ aggiorniamo il valore base di tutti i lampioni, li resettiamo tutti al valore base !!! sbagliato"""
-        for lamp in self.matrix[self.matrix != None]:
-            lamp.setLevel(newBaseValue)
+    # def updateState(self, newBaseValue):
+    #     """ aggiorniamo il valore base di tutti i lampioni, li resettiamo tutti al valore base !!! sbagliato"""
+    #     for lamp in self.matrix[self.matrix != None]:
+    #         lamp.setLevel(newBaseValue)
 
 
     def searchLampById(self, id):
@@ -69,6 +69,13 @@ class City:
             if lamp.id == id:
                 return lamp
 
+    def totalConsumption(self):
+        energy = 0
+        hour = 0
+        for lamp in self.matrix[self.matrix != None]:
+            energy += lamp.getPowerUtilization()
+            hour += lamp.getUtilization()
+        return energy, hour
 
 
 

@@ -50,3 +50,22 @@ if __name__ == '__main__':
     duration = 1000 #60*15   1 ora
     sim = Simulation(schedules, duration, prova)
     sim.start()
+
+    def energyPV(start,end,power):
+        t = end-start # start e end in secondi!!!!
+        return int(0.8*t/3600*power)    # mi restituisce i WattORA
+        
+    def totEnergyPv(df,power):
+        total_consumption = 0
+        for i in range(len(df)):
+            total_consumption += energyPV(df.at[i,'SUNRISE'],df.at[i,'SUNSET'],df.at[i,'PV']*power)
+        return total_consumption
+
+    a,b = prova.totalConsumption()
+    print('Energia totale consumata = ',a)
+    print('Secondi totali accese = ',b)
+    print('PV = ',totEnergyPv(dati,200))
+
+    
+    
+    
