@@ -8,6 +8,7 @@ if __name__ == '__main__':
 
     dati = pd.read_csv('data.csv')
     lbd = pd.read_csv('lambda.csv')
+    shif_pars = pd.read_csv('lambda.csv')
 
     '''---> costruzione della città'''
     m = [[0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
@@ -29,6 +30,6 @@ if __name__ == '__main__':
 
     # print(prova.matrix[2][2].neigh)
     '''--->simulazione'''
-    duration = 3600*24 # 1 mese
-    sim = Simulation(duration, prova, lbd)
+    duration = 3600*24 # 1 gg
+    sim = Simulation(dati, duration, prova, lbd, shif_pars)
     sim.start()

@@ -36,6 +36,7 @@ class Lamp:
 
     def setState(self, newState):
         self.state = newState
+        if newState == 'off': self.setLevel(0)
 
     def addNeigh(self,pos, newNeigh,id):
         self.neigh[pos]=newNeigh
