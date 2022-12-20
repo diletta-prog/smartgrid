@@ -27,11 +27,31 @@ class Simulation:
         self.fes.put((0, self.arrival, (lamp, lamp.randomNeigh(), randint(3, 10), 1)))  # primo elemento
         lamp = self.city.randomLamp()
         self.fes.put((50, self.failure, lamp))
-
+        for i in range(len(self.city.lampioni)):    # per accendere tutti i lampioni a inizio simulazione
+            self.city.searchLampById(self.city.lampioni[i]).setLevel(self.scheduler.lampValueBase(self.clock, False))
+            self.city.searchLampById(self.city.lampioni[i]).setState('on')
         while self.clock < self.duration:
+            for i in range(10):
+                print(self.city.matrix[2,i].getLevel(),' - ', end="")
             (self.clock, event, attr) = self.fes.get()
-            if self.scheduler.checksuntime(self.clock):
+            flag_suntime, flag_day = self.scheduler.checksuntime(self.clock)
+            if flag_day:
+                for i in range(len(self.city.lampioni)):    # per aggiornare tutti i lampioni quando cambia giorno
+                    if  self.city.searchLampById(self.city.lampioni[i]) not in self.lampsOn: # controllo se è attivo perchè c'è auto
+                        if self.city.searchLampById(self.city.lampioni[i]).getState()=='True' :
+                            self.city.searchLampById(self.city.lampioni[i]).setLevel(self.scheduler.lampValueBase(self.clock, True))
+                        else :
+                            self.city.searchLampById(self.city.lampioni[i]).setLevel(self.scheduler.lampValueBase(self.clock, False))
+                    else:
+                        if self.city.searchLampById(self.city.lampioni[i]).getState()=='True' :
+                            self.city.searchLampById(self.city.lampioni[i]).setLevel(self.scheduler.lampValueCar(self.clock, True))
+                        else :
+                            self.city.searchLampById(self.city.lampioni[i]).setLevel(self.scheduler.lampValueCar(self.clock, False))
+            if flag_suntime:
                 event(attr)
+
+       
+            
 
         print("arrivi -- ", self.narrivi)
         print("fails -- ", self.nfails)

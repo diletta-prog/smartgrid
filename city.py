@@ -13,6 +13,7 @@ class City:
         self.matrixRaw = m == 1  # mi salvo la matrice grezza con 0 e 1
         self.matrix = np.empty(shape=np.shape(m), dtype=object)  # matrice di oggetti che saranno lampioni
         self.dati = dati
+        self.lampioni = []
         pass
 
     def build(self):
@@ -25,6 +26,7 @@ class City:
 
     def addLamp(self, pos):
         self.matrix[pos[0]][pos[1]] = Lamp(self.lampsCount, pos)  # inserisco oggetto lampione
+        self.lampioni.append(Lamp(self.lampsCount, pos).getID())
         self.lampsCount += 1  # incremento numero lampioni
 
     def checkNeighs(self, lamp, pos):
@@ -62,10 +64,11 @@ class City:
             lamp.setLevel(newBaseValue)
 
 
-
-
-
     def searchLampById(self, id):
         for lamp in self.matrix[self.matrix != None]:
             if lamp.id == id:
                 return lamp
+
+
+
+
