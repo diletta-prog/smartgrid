@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
     dati = pd.read_csv('data.csv')
     lbd = pd.read_csv('lambda.csv')
-    shif_pars = pd.read_csv('lambda.csv')
+    shif_pars = pd.read_csv('shift.csv')
     
     matrix = pd.read_csv("matrice_torino.csv", sep=';', header=0, index_col=None).to_numpy()
 
@@ -35,6 +35,6 @@ if __name__ == '__main__':
 
     # print(prova.matrix[2][2].neigh)
     '''--->simulazione'''
-    duration = 100   # 1 ora
+    duration = 60*15   # 1 ora
     sim = Simulation(schedules, duration, prova)
     sim.start()

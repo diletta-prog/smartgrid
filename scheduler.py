@@ -21,7 +21,7 @@ class Scheduler:
     def shiftTime(self, clock):
         for index, el in self.shift_parameters[self.hist_shift_index:].iterrows():
             if clock < el['range']:
-                shift_parameter = el['lambda']
+                shift_parameter = el['traffic']
                 break
         self.hist_shift_index = index
         return clock + expovariate(shift_parameter)
