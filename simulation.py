@@ -4,8 +4,9 @@ import random as rd
 
 from scheduler import Scheduler
 
-
+fault = 0
 class Simulation:
+
 
     def __init__(self, schedules, duration, city, seed=0):
         self.duration = duration
@@ -18,6 +19,7 @@ class Simulation:
         self.nfails = 0
         self.narrivi = 0
         self.scheduler = schedules
+        self.lampsOn = []
 
     def start(self):
         """ cuore della simulazione, prende iterativamente elementi dalla fes e agisce in base al tipo di evento """
@@ -36,32 +38,56 @@ class Simulation:
         print("fails -- ", self.nfails)
 
     def shift(self, attributes):
-        lamp, direction, ttl,carid = attributes
+        lamp, direction, ttl,carid, arrival_lamp = attributes
+        arrival_lamp.setBusy(0) # setto il lampione di arrivo a 0 (non ho auto)
+        lamp.setBusy(1)
         print('la macchina, ', carid,' si sposta al lampione ', lamp.id, 'e va verso ', direction, 'al lampione',lamp.neigh[direction].id, 'con ttl ', ttl)
         if ttl > 0:  # controllo se la macchina ha ancora time to live
             nextLamp = lamp.neigh[direction]
-            nextLamp.setLevel(1.2 * self.base_value)
+            nextLamp.setLevel(self.scheduler.lampValueCar(self.clock,fault)) # da aggiungere fault
+            self.lampsOn.append(nextLamp)
             try:  # next shift
                 self.fes.put((self.scheduler.shiftTime(self.clock), self.shift,
-                              (nextLamp, nextLamp.randomNeigh(direction), ttl - 1,carid)))
+                              (nextLamp, nextLamp.randomNeigh(direction), ttl - 1,carid,lamp)))
             except:
                 pass
+        
+        print('vecchi')
+        print([item.id for item in self.lampsOn])
+        lampsOn_temp = self.lampsOn.copy()
+        for item in self.lampsOn:
+            flag = 0
+            for neigh in item.neigh.values():
+                if neigh.busy == 1:
+                    flag = 1
+            if flag == 0:
+                item.setLevel(self.scheduler.lampValueBase(self.clock,fault)) # aggiungere fault
+                lampsOn_temp.remove(item)
+        self.lampsOn = lampsOn_temp.copy()
+        print('nuovi')
+        print([item.id for item in self.lampsOn])
+
+
+                
 
 
     def arrival(self, attributes):
 
         """--->setto la luminosità di tutti i lampioni intorno"""
         lamp, direction, ttl ,carid = attributes
-        lamp.setLevel(1.2 * self.base_value)
+        lamp.setLevel(self.scheduler.lampValueCar(self.clock,fault)) #da aggiungere fault
+        self.lampsOn.append(lamp)
+        lamp.setBusy(1)
         for neigh in lamp.neigh.values():
-            neigh.setLevel(1.2 * self.base_value)
+            neigh.setLevel(self.scheduler.lampValueCar(self.clock,fault))
+            self.lampsOn.append(neigh)
         print('arriva la macchina ',carid,' al lampione ', lamp.id, 'e va verso ', direction,'al lampione',lamp.neigh[direction].id, 'con ttl ', ttl)
         """--->schedulo il prossimo shift"""
         try:
             nextLamp = lamp.neigh[direction]
             self.fes.put((self.scheduler.shiftTime(self.clock), self.shift,
                           (nextLamp, nextLamp.randomNeigh(direction),
-                         ttl - 1,carid)))
+                         ttl - 1,carid,lamp)))
         except:
             pass
 
@@ -92,29 +118,4 @@ class Simulation:
         for neigh in lamp.neigh.values():
             neigh.setLevel(self.base_value)
 
-    def dailyUpdate(self):
-        """ aggiorniamo il valore  base value"""
-
-        self.scheduler.newDay()
-
-        if self.dati['meteo'] == 'sole':
-            self.base_value = 50
-        if self.dati['meteo'] == 'pioggia/temporale':
-            self.base_value = 60
-        if self.dati['meteo'] == 'pioggia/neve':
-            self.base_value = 70
-        if self.dati['meteo'] == 'pioggia/nebbia':
-            self.base_value = 80
-        if self.dati['meteo'] == 'pioggia':
-            self.base_value = 85
-        if self.dati['meteo'] == 'neve/nebbia':
-            self.base_value = 90
-        if self.dati['meteo'] == 'nebbia':
-            self.base_value = 95
-        self.city.updateState()
-
-    def opposite(self, dir):
-        if dir == 'left': return 'right'
-        if dir == 'rigth': return 'left'
-        if dir == 'up': return 'down'
-        if dir == 'down': return 'up'
+    

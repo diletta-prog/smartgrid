@@ -20,6 +20,7 @@ class Lamp:
         self.lev = lev  # livello intensità
         self.state = stato  # stato
         self.neigh = {}  # ID lampioni vicini
+        self.busy = 0
 
     def getPos(self):
         return self.pos[0], self.pos[1]
@@ -35,6 +36,9 @@ class Lamp:
 
     def getNeigh(self, pos):
         return self.neigh[pos]
+
+    def setBusy(self,busy):
+        self.busy = busy
 
     def setLevel(self, newLevel):
         self.lev = newLevel

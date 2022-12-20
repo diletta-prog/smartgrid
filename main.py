@@ -35,6 +35,6 @@ if __name__ == '__main__':
 
     # print(prova.matrix[2][2].neigh)
     '''--->simulazione'''
-    duration = 60*15   # 1 ora
+    duration = 20 #60*15   1 ora
     sim = Simulation(schedules, duration, prova)
     sim.start()
