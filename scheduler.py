@@ -14,9 +14,9 @@ class Scheduler:
         self.day = 0
 
     def checksuntime(self, clock):
-        # row = self.dati.iloc[self.day]
-        # if row['SUNRISE'] < clock < row['SUNSET']:
-        #     return False
+        row = self.dati.iloc[self.day]
+        if row['SUNRISE'] < clock < row['SUNSET']:
+            return False
         return True
 
     def shiftTime(self, clock):
@@ -60,7 +60,7 @@ class Scheduler:
             for index, el in self.dati[self.hist_value_index:].iterrows(): # da controllare se possiamo lasciare hist_value_index 
                 if clock < el['DATA']:
                     if fault == True:
-                        lamp_value = el['FAILURE_MIN_LUM']
+                        lamp_value = el['FAILURE_LUM_MIN']
                     else:
                         lamp_value = el['MIN_LUM']
                     break

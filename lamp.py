@@ -18,7 +18,7 @@ class Lamp:
         self.id = id  # id
         self.pos = pos  # posizione nella matrice
         self.lev = lev  # livello intensità
-        self.state = stato  # stato
+        self.state = stato  # stato (off, on, fail)
         self.neigh = {}  # ID lampioni vicini
         self.busy = 0
 
@@ -57,5 +57,5 @@ class Lamp:
         if exclude is None:
             return choice(list(self.neigh.keys()))
         else:
-            print(list(filter(lambda x: x != opposite(exclude), self.neigh.keys())))
+            #print(list(filter(lambda x: x != opposite(exclude), self.neigh.keys())))
             return choice(list(filter(lambda x: x != opposite(exclude), self.neigh.keys())))
