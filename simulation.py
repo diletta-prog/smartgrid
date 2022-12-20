@@ -5,7 +5,7 @@ import random as rd
 
 class Simulation:
 
-    def __init__(self, duration, city, arrival_parameter=25, fail_parameter=500, shift_parameter=0.5, seed=0):
+    def __init__(self, duration, city, arrival_parameter=25, fail_parameter=500, repair_parameter=100,shift_parameter=0.5, seed=0):
         self.duration = duration
         self.clock = 0
         self.seed = seed
@@ -18,6 +18,10 @@ class Simulation:
         self.shift_parameter = shift_parameter
         rd.seed(seed)
 
+
+
+
+
     def start(self):
         """ cuore della simulazione, prende iterativamente elementi dalla fes e agisce in base al tipo di evento """
         lamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
@@ -27,6 +31,10 @@ class Simulation:
         while self.clock < self.duration:
             (self.clock, event, attr) = self.fes.get()
             event(attr)
+
+
+
+
 
     def shift(self, attributes):
         lamp, direction, ttl = attributes
@@ -40,6 +48,10 @@ class Simulation:
                         ttl - 1)))
             except:
                 pass
+
+
+
+
 
     def arrival(self, attributes):
 
@@ -71,14 +83,23 @@ class Simulation:
 
 
     def failure(self, attributes):
-        """cosa facciamo in caso di una failure del lampione in posizione pos
-        --> aumento l'intensità dei vicini"""
         lamp = attributes
         for neigh in lamp.neigh.values():
             neigh.setLevel(1.2 * self.base_value)
-        """---> schedulo il next fail"""
+        self.fes.put((self.clock + expovariate(1.0 / self.repair_parameter), self.repair, lamp))
+
+
+
+
+    def repair(self, attributes):
+        lamp = attributes
+        for neigh in lamp.neigh.values():
+            neigh.setLevel(self.base_value)
         nextLamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
-        self.fes.put((self.clock + expovariate(1.0 / self.fail_parameter), self.failure, nextLamp))
+        self.fes.put((self.clock + expovariate(1.0 / self.fail_parameter), self.fail, nextLamp))
+
+
+
 
     def dailyUpdate(self):
         """ aggiorniamo il valore  base value"""
