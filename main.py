@@ -28,13 +28,13 @@ if __name__ == '__main__':
     m2 = [[1, 0, 0], [1, 0, 0], [1, 0, 0]]
 
     prova = City(np.array(m), dati)
-    fail=500
-    repair=200
+    fail=10
+    repair=20
     schedules = Scheduler(dati, shif_pars, lbd, fail, repair)
     prova.build()
 
     # print(prova.matrix[2][2].neigh)
     '''--->simulazione'''
-    duration = 10000 #60*15   1 ora
+    duration = 100 #60*15   1 ora
     sim = Simulation(schedules, duration, prova)
     sim.start()

@@ -35,6 +35,9 @@ class Scheduler:
         self.hist_arrival_index = index
         return clock+expovariate(arrival_parameter)
 
+
+
+
     def newDay(self):
         self.index_day += 1
         self.day = self.data.index[self.index_day]
@@ -44,6 +47,10 @@ class Scheduler:
 
     def repair_parameter(self):
         return self.repair_parameter
+
+
+    def Value(self,clock):
+         return
 
     def lampValueCar(self, clock, fault):
         for index, el in self.dati[self.hist_value_index:].iterrows():
