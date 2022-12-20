@@ -37,7 +37,7 @@ class Simulation:
 
     def shift(self, attributes):
         lamp, direction, ttl,carid = attributes
-        print('la macchina, ', carid,' si sposta al lampione ', lamp.id, 'e va verso ', direction, 'con ttl ', ttl)
+        print('la macchina, ', carid,' si sposta al lampione ', lamp.id, 'e va verso ', direction, 'al lampione',lamp.neigh[direction].id, 'con ttl ', ttl)
         if ttl > 0:  # controllo se la macchina ha ancora time to live
             nextLamp = lamp.neigh[direction]
             nextLamp.setLevel(1.2 * self.base_value)
@@ -55,7 +55,7 @@ class Simulation:
         lamp.setLevel(1.2 * self.base_value)
         for neigh in lamp.neigh.values():
             neigh.setLevel(1.2 * self.base_value)
-        print('arriva la macchina ',carid,' al lampione ', lamp.id,'e va verso ', direction, 'con ttl ', ttl)
+        print('arriva la macchina ',carid,' al lampione ', lamp.id, 'e va verso ', direction,'al lampione',lamp.neigh[direction].id, 'con ttl ', ttl)
         """--->schedulo il prossimo shift"""
         try:
             nextLamp = lamp.neigh[direction]
