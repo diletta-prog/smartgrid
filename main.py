@@ -10,6 +10,8 @@ if __name__ == '__main__':
     dati = pd.read_csv('data.csv')
     lbd = pd.read_csv('lambda.csv')
     shif_pars = pd.read_csv('lambda.csv')
+    
+    matrix = pd.read_csv("matrice_torino.csv", sep=';', header=0, index_col=None).to_numpy()
 
     '''---> costruzione della città'''
     m = [[0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
