@@ -63,8 +63,8 @@ class Simulation:
             if item.getState() == 'fail':
                 fault = True
         arrival_lamp.setBusy(0)  # setto il lampione di arrivo a 0 (non ho auto)
-        if arrival_lamp.getState() != 'fail':
-            arrival_lamp.setLevel(self.scheduler.lampValueBase(self.clock, fault))
+        # if arrival_lamp.getState() != 'fail':
+        #     arrival_lamp.setLevel(self.scheduler.lampValueBase(self.clock, fault))
 
         lamp.setBusy(1)
         print('la macchina, ', carid,' si sposta al lampione ', lamp.id, 'e va verso ', direction, 'al lampione',
@@ -81,6 +81,8 @@ class Simulation:
                 self.fes.put((self.scheduler.shiftTime(self.clock), self.shift,
                             (nextLamp, nextLamp.randomNeigh(direction), ttl - 1, carid, lamp)))
             except:
+                self.fes.put((self.scheduler.shiftTime(self.clock), self.shift,
+                            (nextLamp, nextLamp.randomNeigh(direction), ttl - 1, carid, lamp)))
                 print('STA PER USCIRE FUORI DAL SISTEMA')
 
         # print('vecchi')
