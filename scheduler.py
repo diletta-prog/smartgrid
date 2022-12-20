@@ -11,13 +11,19 @@ class Scheduler:
         self.hist_value_index = 0
         self.hist_shift_index = 0
         self.hist_arrival_index = 0
-        self.day = 0
+        self.index_day = 0
+        self.day = 0    # giorni in secondi
 
     def checksuntime(self, clock):
+        flag_day = False
+        flag_suntime = True
+        if clock >= (86400*(self.index_day+1)): # controllo se ho passato la mezzanotte
+            self.newDay()
+            flag_day = True
         row = self.dati.iloc[self.day]
         if row['SUNRISE'] < clock < row['SUNSET']:
-            return False
-        return True
+            flag_suntime = False
+        return flag_suntime, flag_day
 
     def shiftTime(self, clock):
         for index, el in self.shift_parameters[self.hist_shift_index:].iterrows():
