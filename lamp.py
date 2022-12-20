@@ -43,7 +43,14 @@ class Lamp:
         return self.neigh[pos]
 
     def setBusy(self,busy):
-        self.busy = busy
+        if busy == 1: 
+            self.busy +=1
+        if busy == 0: 
+            if (self.busy == 0):
+                print('Error, busy negativo')
+            else:
+                self.busy -=1
+        
 
     def setLevel(self, newLevel):
         self.lev = newLevel

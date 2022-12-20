@@ -63,8 +63,6 @@ class Simulation:
             if item.getState() == 'fail':
                 fault = True
         arrival_lamp.setBusy(0)  # setto il lampione di arrivo a 0 (non ho auto)
-        # if arrival_lamp.getState() != 'fail':
-        #     arrival_lamp.setLevel(self.scheduler.lampValueBase(self.clock, fault))
 
         lamp.setBusy(1)
         print('la macchina, ', carid,' si sposta al lampione ', lamp.id, 'e va verso ', direction, 'al lampione',
@@ -81,8 +79,8 @@ class Simulation:
                 self.fes.put((self.scheduler.shiftTime(self.clock), self.shift,
                             (nextLamp, nextLamp.randomNeigh(direction), ttl - 1, carid, lamp)))
             except:
-                self.fes.put((self.scheduler.shiftTime(self.clock), self.shift,
-                            (nextLamp, nextLamp.randomNeigh(direction), ttl - 1, carid, lamp)))
+                self.fes.put((self.scheduler.shiftTime(self.clock), self.out,
+                            (carid, lamp)))
                 print('STA PER USCIRE FUORI DAL SISTEMA')
 
         # print('vecchi')
@@ -91,7 +89,7 @@ class Simulation:
         for item in self.lampsOn:
             flag = 0
             for neigh in item.neigh.values():
-                if neigh.busy == 1 or item.busy == 1:
+                if neigh.busy > 0 or item.busy > 0:
                     flag = 1
             if flag == 0:
                 item.setLevel(self.scheduler.lampValueBase(self.clock, fault))
@@ -99,6 +97,26 @@ class Simulation:
         self.lampsOn = lampsOn_temp.copy()
         # print('nuovi')
         # print([item.id for item in self.lampsOn])
+        print('i lampioni accesi sono : ', [(item.id, item.lev) for item in self.lampsOn])
+
+    def out(self, attributes):
+        carid, lamp = attributes
+        fault = False
+        for item in lamp.neigh.values():
+            if item.getState() == 'fail':
+                fault = True
+        print('la macchina ',carid,' sparisce dopo il lampione', lamp.id)
+        lamp.busy(0)
+        
+        flag = 0
+        for neigh in lamp.neigh.values():
+            if neigh.busy > 0:
+                flag = 1
+        if flag == 0:
+            lamp.setLevel(self.scheduler.lampValueBase(self.clock, fault))
+            self.lampsOn.remove(lamp)
+
+
         print('i lampioni accesi sono : ', [(item.id, item.lev) for item in self.lampsOn])
 
     def arrival(self, attributes):
