@@ -1,4 +1,5 @@
 from itertools import product
+from random import randint
 
 from lamp import *
 import numpy as np
@@ -51,7 +52,8 @@ class City:
 
 
 
-
+    def randomLamp(self):
+        return self.searchLampById(randint(0, self.lampsCount - 1))
 
 
     def updateState(self, newBaseValue):

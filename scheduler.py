@@ -1,3 +1,6 @@
+from random import expovariate
+
+
 class Scheduler:
     def __init__(self, dati, shift_parameters, arrival_parameters, fail_parameter, repair_parameter):
         self.dati = dati
@@ -15,21 +18,21 @@ class Scheduler:
         #     return False
         return True
 
-    def shift_parameter(self, clock):
+    def shiftTime(self, clock):
         for index, el in self.shift_parameters[self.hist_shift_index:].iterrows():
             if clock < el['range']:
                 shift_parameter = el['lambda']
                 break
         self.hist_shift_index = index
-        return shift_parameter
+        return clock + expovariate(shift_parameter)
 
-    def arrival_parameter(self, clock):
+    def arrivalTime(self, clock):
         for index, el in self.arrival_parameters[self.hist_arrival_index:].iterrows():
             if clock < el['range']:
                 arrival_parameter = el['lambda']
                 break
         self.hist_arrival_index = index
-        return arrival_parameter
+        return clock+expovariate(arrival_parameter)
 
     def newDay(self):
         self.index_day += 1

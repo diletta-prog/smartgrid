@@ -7,7 +7,7 @@ from scheduler import Scheduler
 
 class Simulation:
 
-    def __init__(self, schedules,duration, city, seed=0):
+    def __init__(self, schedules, duration, city, seed=0):
         self.duration = duration
         self.clock = 0
         self.city = city
@@ -21,10 +21,12 @@ class Simulation:
 
     def start(self):
         """ cuore della simulazione, prende iterativamente elementi dalla fes e agisce in base al tipo di evento """
-        lamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
-        self.fes.put((0, self.arrival, (lamp, choice(list(lamp.neigh.keys())), randint(3, 10))))  # primo elemento
-        lamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
+
+        lamp = self.city.randomLamp()
+        self.fes.put((0, self.arrival, (lamp, lamp.randomNeigh(), randint(3, 10),1)))  # primo elemento
+        lamp = self.city.randomLamp()
         self.fes.put((50, self.failure, lamp))
+
         while self.clock < self.duration:
             (self.clock, event, attr) = self.fes.get()
             if self.scheduler.checksuntime(self.clock):
@@ -33,58 +35,45 @@ class Simulation:
         print("arrivi -- ", self.narrivi)
         print("fails -- ", self.nfails)
 
-
-
-
     def shift(self, attributes):
-        lamp, direction, ttl = attributes
-        print('la macchina si sposta al lampione ', lamp.id)
+        lamp, direction, ttl,carid = attributes
+        print('la macchina, ', carid,' si sposta al lampione ', lamp.id, 'e va verso ', direction, 'con ttl ', ttl)
         if ttl > 0:  # controllo se la macchina ha ancora time to live
             nextLamp = lamp.neigh[direction]
             nextLamp.setLevel(1.2 * self.base_value)
             try:  # next shift
-                self.fes.put(
-                    (self.clock + expovariate(self.scheduler.shift_parameter(self.clock)), self.shift, (
-                        nextLamp, choice(list(filter(lambda x: x != self.opposite(direction), nextLamp.neigh.keys()))),
-                        ttl - 1)))
+                self.fes.put((self.scheduler.shiftTime(self.clock), self.shift,
+                              (nextLamp, nextLamp.randomNeigh(direction), ttl - 1,carid)))
             except:
                 pass
-
-
-
-
 
 
     def arrival(self, attributes):
 
         """--->setto la luminosità di tutti i lampioni intorno"""
-        lamp, direction, ttl = attributes
+        lamp, direction, ttl ,carid = attributes
         lamp.setLevel(1.2 * self.base_value)
         for neigh in lamp.neigh.values():
             neigh.setLevel(1.2 * self.base_value)
-        print('arriva una macchina al lampione ', lamp.id)
+        print('arriva la macchina ',carid,' al lampione ', lamp.id,'e va verso ', direction, 'con ttl ', ttl)
         """--->schedulo il prossimo shift"""
         try:
             nextLamp = lamp.neigh[direction]
-            self.fes.put((self.clock + expovariate(self.scheduler.shift_parameter(self.clock)), self.shift, (
-                nextLamp, choice(list(filter(lambda x: x != self.opposite(direction), nextLamp.neigh.keys()))),
-                ttl - 1)))
+            self.fes.put((self.scheduler.shiftTime(self.clock), self.shift,
+                          (nextLamp, nextLamp.randomNeigh(direction),
+                         ttl - 1,carid)))
         except:
             pass
 
         """--> schedulo il next arrival"""
-        nextArrival = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
+        nextArrival = self.city.randomLamp()
         try:
-            self.fes.put((self.clock + expovariate(self.scheduler.arrival_parameter(self.clock)), self.arrival,
-                          (nextArrival, choice(list(nextArrival.neigh.keys())),
-                           randint(3, 10))))
+            self.fes.put((self.scheduler.arrivalTime(self.clock), self.arrival,
+                          (nextArrival, nextArrival.randomNeigh(),
+                           randint(3, 10),carid+1)))
         except:
             pass
         self.narrivi += 1
-
-
-
-
 
     def failure(self, attributes):
         lamp = attributes

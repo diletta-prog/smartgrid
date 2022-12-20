@@ -1,3 +1,8 @@
+from random import choice
+
+from directions import opposite
+
+
 class Lamp:
     """ 
     lampione, con diversi attributi:
@@ -10,12 +15,12 @@ class Lamp:
     """
 
     def __init__(self, id, pos, lev=0, stato='on'):
-        self.id = id    # id 
+        self.id = id  # id
         self.pos = pos  # posizione nella matrice
-        self.lev = lev  #livello intensità
+        self.lev = lev  # livello intensità
         self.state = stato  # stato
-        self.neigh = {} # ID lampioni vicini
-        
+        self.neigh = {}  # ID lampioni vicini
+
     def getPos(self):
         return self.pos[0], self.pos[1]
 
@@ -28,7 +33,7 @@ class Lamp:
     def getID(self):
         return self.id
 
-    def getNeigh(self,pos):
+    def getNeigh(self, pos):
         return self.neigh[pos]
 
     def setLevel(self, newLevel):
@@ -38,8 +43,15 @@ class Lamp:
         self.state = newState
         if newState == 'off': self.setLevel(0)
 
-    def addNeigh(self,pos, newNeigh,id):
-        self.neigh[pos]=newNeigh
+    def addNeigh(self, pos, newNeigh, id):
+        self.neigh[pos] = newNeigh
 
     def checkIntersection(self):
         pass
+
+    def randomNeigh(self, exclude=None):
+        if exclude is None:
+            return choice(list(self.neigh.keys()))
+        else:
+            print(list(filter(lambda x: x != opposite(exclude), self.neigh.keys())))
+            return choice(list(filter(lambda x: x != opposite(exclude), self.neigh.keys())))
