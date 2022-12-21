@@ -14,17 +14,23 @@ class Lamp:
     
     """
 
-    def __init__(self, id, pos, power_max=100, lev=0, stato='on'):
+    def __init__(self, id, pos, power_max=100, lev=0, stato='ok'):
         self.id = id  # id
         self.pos = pos  # posizione nella matrice
         self.lev = lev  # livello intensità
-        self.state = stato  # stato (off, on, fail)
+        self.state = stato  # stato (ok, fail)
         self.power_max = power_max  # potenza massima lampadina
         self.neigh = {}  # ID lampioni vicini
         self.busy = 0
         self.utilization = 0    # tempo di utilizzo
         self.power_utilization = 0  # wattOra consumati
         self.time_on = 0    # orario di accensione
+
+
+    def clearLamps(self):
+        self.lev=0
+        self.busy=0
+        self.time_on=0
 
 
     def setTimeOn(self,clock):
@@ -54,15 +60,18 @@ class Lamp:
     def setBusy(self,busy):
         if busy == 1: 
             self.busy +=1
-        if busy == 0: 
+        elif busy == 0: 
             if (self.busy == 0):
-                print('Error, busy negativo')
+                pass
             else:
                 self.busy -=1
+        elif busy == -1:
+            self.busy = 0
         
 
     def setLevel(self, newLevel, clock):
-        self.consumption(clock)
+        if self.lev != 0:
+            self.consumption(clock)
         self.setTimeOn(clock)
         self.lev = newLevel
 

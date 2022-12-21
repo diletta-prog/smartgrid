@@ -40,21 +40,21 @@ if __name__ == '__main__':
 
     prova = City(np.array(m3), dati)
     
-    fail=10000000000
+    fail=100
     repair=20
     schedules = Scheduler(dati, shif_pars, lbd, fail, repair)
     prova.build()
 
     # print(prova.matrix[2][2].neigh)
     '''--->simulazione'''
-    duration = 1000 #60*15   1 ora
+    duration = 3600*24
     sim = Simulation(schedules, duration, prova)
     sim.start()
 
     def energyPV(start,end,power):
         t = end-start # start e end in secondi!!!!
         return int(0.8*t/3600*power)    # mi restituisce i WattORA
-        
+
     def totEnergyPv(df,power):
         total_consumption = 0
         for i in range(len(df)):
@@ -62,8 +62,8 @@ if __name__ == '__main__':
         return total_consumption
 
     a,b = prova.totalConsumption()
-    print('Energia totale consumata = ',a)
-    print('Secondi totali accese = ',b)
+    print('Energia totale consumata = ',a/1000,' kWh')
+    print('Secondi totali accese = ',b/3600,' ore')
     print('PV = ',totEnergyPv(dati,200))
 
     

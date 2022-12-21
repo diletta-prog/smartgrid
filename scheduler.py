@@ -20,11 +20,18 @@ class Scheduler:
         if clock >= (86400*(self.index_day+1)): # controllo se ho passato la mezzanotte
             self.newDay()
             flag_day = True
-        row = self.dati.iloc[self.day]
-        if row['SUNRISE'] < clock < row['SUNSET']:
+        sunrise = int(self.dati.at[self.index_day,'SUNRISE'])
+        sunset = int(self.dati.at[self.index_day,'SUNSET'])
+        if sunrise < clock and clock < sunset:
             flag_suntime = False
         return flag_suntime, flag_day
 
+    def newDay(self):
+        self.index_day += 1
+        self.day = self.dati.at[self.index_day,'DATA']
+        
+        
+        
     def shiftTime(self, clock):
         for index, el in self.shift_parameters[self.hist_shift_index:].iterrows():
             if clock < el['range']:
@@ -44,9 +51,7 @@ class Scheduler:
 
 
 
-    def newDay(self):
-        self.index_day += 1
-        self.day = self.data.index[self.index_day]
+    
 
     def fail_parameter(self):
         return self.fail_parameter
@@ -55,10 +60,9 @@ class Scheduler:
         return self.repair_parameter
 
 
-    def Value(self,clock):
-         return
 
     def lampValueCar(self, clock, fault):
+        lamp_value = 0
         for index, el in self.dati[self.hist_value_index:].iterrows():
             if clock < el['DATA']:
                 if fault == True:
@@ -70,12 +74,13 @@ class Scheduler:
         return lamp_value
 
     def lampValueBase(self, clock, fault):
-            for index, el in self.dati[self.hist_value_index:].iterrows(): # da controllare se possiamo lasciare hist_value_index 
-                if clock < el['DATA']:
-                    if fault == True:
-                        lamp_value = el['FAILURE_LUM_MIN']
-                    else:
-                        lamp_value = el['MIN_LUM']
-                    break
-            self.hist_value_index = index
-            return lamp_value
+        lamp_value = 0
+        for index, el in self.dati[self.hist_value_index:].iterrows(): # da controllare se possiamo lasciare hist_value_index 
+            if clock < el['DATA']:
+                if fault == True:
+                    lamp_value = el['FAILURE_LUM_MIN']
+                else:
+                    lamp_value = el['MIN_LUM']
+                break
+        self.hist_value_index = index
+        return lamp_value
