@@ -3,10 +3,12 @@ from scheduler import Scheduler
 from simulation import Simulation
 import numpy as np
 import pandas as pd
-
+import sys
 if __name__ == '__main__':
     ''' due fasi: prima la costruzione della città, poi la simulazione'''
 
+    #
+    # sys.stdout = sys.stderr = open('logfile', 'a')
     dati = pd.read_csv('data.csv')
     lbd = pd.read_csv('lambda.csv')
     shif_pars = pd.read_csv('shift.csv')
@@ -40,14 +42,14 @@ if __name__ == '__main__':
 
     prova = City(np.array(m3), dati)
     
-    fail=1000000000
-    repair=20
+    fail=10000
+    repair=200
     schedules = Scheduler(dati, shif_pars, lbd, fail, repair)
     prova.build()
 
     # print(prova.matrix[2][2].neigh)
     '''--->simulazione'''
-    duration = 86400*2#  1 ora
+    duration = 3600*24*360#  1 ora
     sim = Simulation(schedules, duration, prova)
     sim.start()
 

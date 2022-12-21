@@ -26,8 +26,21 @@ class Simulation:
     def start(self):
         """ cuore della simulazione, prende iterativamente elementi dalla fes e agisce in base al tipo di evento """
         self.fesInit()
+        """cosa succede al tramonto --->li metto tutti al valore base"""
+        self.flag = True
+        for lamp in self.city.allLamps():
+            fault = lamp.checkNeighState()  # controllo se tra i vicini c'è un fault
+            if lamp.getState() != 'fail':  # se il mio lampione è funzionante, aggiunsto  valore in base anche ai vicini
+                lamp.setLevel(self.scheduler.lampValueBase(self.clock, fault), self.clock)
         while self.clock < self.duration:
-            (self.clock, event, attr) = self.fes.get()
+            # print(list(self.fes.queue))
+            # for i in range(10):
+            #     print(self.city.matrix[2, i].getLevel(), ' - ', end="")
+            # print("\n")
+            try:
+             (self.clock,prior, event, attr) = self.fes.get()
+            except:
+                print(self.fes.queue)
             event(attr)
         self.printStats()
 
@@ -35,10 +48,11 @@ class Simulation:
 
 
     def midnight(self, attributes):
+        # print(self.clock,' MEZZANOTTE')
         """cosa succede a mezzanotte: aggiorno i valori base di tutti i lampioni"""
         [lamps.setLevel(self.scheduler.lampValueBase(self.clock, False), self.clock) for lamps in self.city.allLamps()
          if lamps not in self.lampsOn and lamps.getState() != 'fail']
-        self.fes.put((self.clock + 24 * 3600, self.midnight, None))  # schedulo la prossima mezzanotte
+        self.fes.put((self.clock + 24 * 3600,1, self.midnight, None))  # schedulo la prossima mezzanotte
 
 
 
@@ -46,15 +60,18 @@ class Simulation:
 
 
     def sunrise(self, attributes):
+        # print(self.clock,'  ALBA')
         """ cosa succede all'alba: spengo tutti i lampioni, li setto tutti a zero e schedulo il prossimo evento al
         tramonto """
         self.flag = False
+
         for lamp in self.city.allLamps():
             lamp.setLevel(0, self.clock)
             lamp.setBusy(-1)
         nextlamp = self.city.randomLamp()
-        self.fes.put((self.clock + 12 * 3600, self.arrival, (nextlamp, nextlamp.randomNeigh(), randint(3, 10), 1)))   # carid da aggiustare
-        self.fes.put((self.clock + 24 * 3600, self.sunrise, None))  # schedule next sunrise
+        self.fes.put((self.clock + 12 * 3600, 3,self.arrival, (nextlamp, nextlamp.randomNeigh(), randint(3, 10), 1)))   # carid da aggiustare
+        value=self.scheduler.nextSunrise()
+        self.fes.put((value,1, self.sunrise, None))  # schedule next sunrise
 
 
 
@@ -62,13 +79,15 @@ class Simulation:
 
     def sunset(self, attibutes):
         """cosa succede al tramonto --->li metto tutti al valore base"""
+        # print(self.clock,' TRAMONTO')
         self.flag = True
         for lamp in self.city.allLamps():
             fault = lamp.checkNeighState()   # controllo se tra i vicini c'è un fault
             if lamp.getState() != 'fail':  # se il mio lampione è funzionante, aggiunsto  valore in base anche ai vicini
                 lamp.setLevel(self.scheduler.lampValueBase(self.clock, fault), self.clock)
         # schedulo la prossima sunset
-        self.fes.put((self.clock + 24 * 3600, self.sunset, None))
+        value=self.scheduler.nextSunset()
+        self.fes.put((value,1, self.sunset, None))
 
 
 
@@ -109,15 +128,15 @@ class Simulation:
     def fesInit(self):
         """inizializzo i valori nella fes"""
         lamp = self.city.randomLamp()
-        self.fes.put((0, self.arrival, (lamp, lamp.randomNeigh(), randint(3, 10), 1)))  # primo elemento
+        self.fes.put((1, 3,self.arrival, (lamp, lamp.randomNeigh(), randint(3, 10), 1)))  # primo elemento
         lamp = self.city.randomLamp()
-        self.fes.put((50, self.failure, lamp))
+        self.fes.put((50,2,self.failure, lamp))
         # prima sunrise
-        self.fes.put((29280, self.sunrise, None))
+        self.fes.put((29280,1, self.sunrise, None))
         # prima mezzanotte
-        self.fes.put((86400, self.midnight, None))
+        self.fes.put((86400, 1,self.midnight, None))
         # prima sunset
-        self.fes.put((61080, self.sunset, None))
+        self.fes.put((61080,1, self.sunset, None))
 
 
 
@@ -132,16 +151,23 @@ class Simulation:
     def shift(self, attributes):
         """la macchina passa in un nuovo nodo, aumento il valore del successivo, schedulo prossimo shift"""
         if self.flag:
+
             lamp, direction, ttl, carid, arrival_lamp = attributes
+
             arrival_lamp.setBusy(0)  # setto il lampione di arrivo a 0 (non ho auto)
             lamp.setBusy(1)
             if ttl > 0:  # controllo se la macchina ha ancora time to live
+                # print('TEMPO :', self.clock, ')) la macchina, ', carid, ' si sposta al lampione ', lamp.id,
+                #       'e va verso ', direction, 'al lampione',
+                #       lamp.neigh[direction].id, 'con ttl ', ttl, end="---->  ")
                 nextLamp = lamp.neigh[direction]
                 self.lampTurnOn(nextLamp)
-                try: self.fes.put((self.scheduler.shiftTime(self.clock), self.shift,
+                try: self.fes.put((self.scheduler.shiftTime(self.clock), 4,self.shift,
                                   (nextLamp, nextLamp.randomNeigh(direction), ttl - 1, carid, lamp)))
                 except: lamp.setBusy(0)
-            else: lamp.setBusy(0)
+            else:
+                  lamp.setBusy(0)
+                  # print('TEMPO :', self.clock, '))LA MACCHINA SCOPARE DAL SISTEMA ', end="---->  ")
             self.disableLamps()
 
 
@@ -149,16 +175,19 @@ class Simulation:
     def arrival(self, attributes):
         """arriva una nuova macchina, accendo il lampione e tutti i suoi vicini, schedulo il prossio shift e arrivo"""
         if self.flag:
+            self.disableLamps()
             lamp, direction, ttl, carid = attributes
+            # print('TEMPO :' ,self.clock,')) arriva la macchina ', carid, 'al lampione ', lamp.id, 'e si sposta verso ',
+            #       direction, ',verso il lampione ', lamp.neigh[direction].id, 'con ttl ', ttl, end="---->  ")
             self.lampTurnOn(lamp)  # accendo il lampione e lo setto busy
             lamp.setBusy(1)
             for neigh in lamp.neigh.values():  self.lampTurnOn(neigh) #accendo tutti i vicini
             nextLamp = lamp.neigh[direction]
-            try: self.fes.put((self.scheduler.shiftTime(self.clock), self.shift,
+            try: self.fes.put((self.scheduler.shiftTime(self.clock),4, self.shift,
                               (nextLamp, nextLamp.randomNeigh(direction), ttl - 1, carid, lamp)))
-            except: pass
+            except: lamp.setBusy(0)
             nextArrival = self.city.randomLamp()
-            try:  self.fes.put((self.scheduler.arrivalTime(self.clock), self.arrival,
+            try:  self.fes.put((self.scheduler.arrivalTime(self.clock),3, self.arrival,
                               (nextArrival, nextArrival.randomNeigh(), randint(3, 10), carid + 1)))
             except: pass
             self.narrivi += 1
@@ -171,16 +200,17 @@ class Simulation:
     def failure(self, attributes):
         if self.flag:
             lamp = attributes
+            # print('TEMPO :' ,self.clock,'))  Cè STATO UN FAULT NEL LAMPIONE ', lamp.id, end="---->  ")
             lamp.setLevel(0, self.clock)
             lamp.setState('fail')
 
             for neigh in lamp.neigh.values():
                 if neigh.getState() != 'fail':
                     neigh.setLevel(self.scheduler.lampValueBase(self.clock, True), self.clock)
-            self.fes.put((self.clock + expovariate(1.0 / self.scheduler.repair_parameter), self.repair, lamp))
+            self.fes.put((self.clock + expovariate(1.0 / self.scheduler.repair_parameter), 2,self.repair, lamp))
             """schedule next failure"""
             nextLamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
-            self.fes.put((self.clock + expovariate(1.0 / self.scheduler.fail_parameter), self.failure, nextLamp))
+            self.fes.put((self.clock + expovariate(1.0 / self.scheduler.fail_parameter),2, self.failure, nextLamp))
             self.nfails += 1
 
 
@@ -190,6 +220,7 @@ class Simulation:
     def repair(self, attributes):
         lamp = attributes
         lamp.setState('on')
+        # print('TEMPO :' ,self.clock,')) Cè STATO LA RIPARAZIONE DEL  LAMPIONE ', lamp.id, end=" ----->")
         if self.flag:
             lamp.setLevel(self.scheduler.lampValueBase(self.clock, False), self.clock)
             for neigh in lamp.neigh.values():
