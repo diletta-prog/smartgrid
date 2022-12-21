@@ -95,3 +95,11 @@ class Lamp:
     def consumption(self, clock):
         self.utilization += (clock-self.time_on)
         self.power_utilization += (clock-self.time_on)/3600*(self.lev/100*self.power_max)
+
+
+    def checkNeighState(self):
+        fault = False
+        for item in self.neigh.values():
+            if item.getState() == 'fail':
+                fault = True
+        return fault

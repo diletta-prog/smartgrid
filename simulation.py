@@ -27,160 +27,76 @@ class Simulation:
         self.fes.put((0, self.arrival, (lamp, lamp.randomNeigh(), randint(3, 10), 1)))  # primo elemento
         lamp = self.city.randomLamp()
         self.fes.put((50, self.failure, lamp))
-        for i in range(len(self.city.lampioni)):    # per accendere tutti i lampioni a inizio simulazione
-            self.city.searchLampById(self.city.lampioni[i]).setLevel(self.scheduler.lampValueBase(self.clock, False),self.clock)
-        while self.clock < self.duration:
-            #print('clock = ',self.clock)
-            # for i in range(10):
-            #     print(self.city.matrix[2,i].getLevel(),' - ', end="")
-            (self.clock, event, attr) = self.fes.get()
-            flag_suntime, flag_day = self.scheduler.checksuntime(self.clock)
-            if flag_day == True:
-                print('sono entrato')
-                self.aggiornoLampioni(self.clock)
-            if flag_suntime!=True: #sono dopo l'alba
-                for i in range(len(self.city.lampioni)):
-                    self.city.searchLampById(self.city.lampioni[i]).clearLamps()
-                self.lampsOn.clear()
-            else: event(attr)
-            
-            #else: #sono oltre l'alba, spengo tutto
-                # for i in range(len(self.city.lampioni)):
-                #     self.city.searchLampById(self.city.lampioni[i]).clearLamps()
-                #self.lampsOn.clear()
-            #event(attr)
-            
-                
 
+        for i in range(len(self.city.lampioni)):  # per accendere tutti i lampioni a inizio simulazione
+            self.city.searchLampById(self.city.lampioni[i]).setLevel(self.scheduler.lampValueBase(self.clock, False),
+                                                                     self.clock)
+            self.city.searchLampById(self.city.lampioni[i]).setState('on')
+        while self.clock < self.duration:
+
+            (self.clock, event, attr) = self.fes.get()
+
+            flag_suntime, flag_day = self.scheduler.checksuntime(self.clock)
+            if flag_day:
+                for i in range(len(self.city.lampioni)):  # per aggiornare tutti i lampioni quando cambia giorno
+                    if self.city.searchLampById(
+                            self.city.lampioni[i]) not in self.lampsOn:  # controllo se è attivo perchè c'è auto
+                        if self.city.searchLampById(self.city.lampioni[i]).getState() == 'True':
+                            self.city.searchLampById(self.city.lampioni[i]).setLevel(
+                                self.scheduler.lampValueBase(self.clock, True), self.clock)
+                        else:
+                            self.city.searchLampById(self.city.lampioni[i]).setLevel(
+                                self.scheduler.lampValueBase(self.clock, False), self.clock)
+                    else:
+                        if self.city.searchLampById(self.city.lampioni[i]).getState() == 'True':
+                            self.city.searchLampById(self.city.lampioni[i]).setLevel(
+                                self.scheduler.lampValueCar(self.clock, True), self.clock)
+                        else:
+                            self.city.searchLampById(self.city.lampioni[i]).setLevel(
+                                self.scheduler.lampValueCar(self.clock, False), self.clock)
+            if flag_suntime:
+                event(attr)
 
         print("arrivi -- ", self.narrivi)
         print("fails -- ", self.nfails)
-        #print('clock= ',self.clock)
 
-    def aggiornoLampioni(self,clock):
-        for i in range(len(self.city.lampioni)):    # per aggiornare tutti i lampioni quando cambia giorno
-            if  self.city.searchLampById(self.city.lampioni[i]) not in self.lampsOn: # controllo se è attivo perchè c'è auto
-                if self.city.searchLampById(self.city.lampioni[i]).getState()=='fail' :
-                    self.city.searchLampById(self.city.lampioni[i]).setLevel(self.scheduler.lampValueBase(self.clock, True),self.clock)
-                else :
-                    self.city.searchLampById(self.city.lampioni[i]).setLevel(self.scheduler.lampValueBase(self.clock, False),self.clock)
-            else:
-                if self.city.searchLampById(self.city.lampioni[i]).getState()=='fail' :
-                    self.city.searchLampById(self.city.lampioni[i]).setLevel(self.scheduler.lampValueCar(self.clock, True),self.clock)
-                else :
-                    self.city.searchLampById(self.city.lampioni[i]).setLevel(self.scheduler.lampValueCar(self.clock, False),self.clock)
 
-    def shift(self, attributes):
+
+
+
+
+
+
+
+    def shift(self, attributes ):
         lamp, direction, ttl, carid, arrival_lamp = attributes
-        fault = False
-        for item in lamp.neigh.values():
-            if item.getState() == 'fail':
-                fault = True
         arrival_lamp.setBusy(0)  # setto il lampione di arrivo a 0 (non ho auto)
         lamp.setBusy(1)
-        # print('la macchina, ', carid,' si sposta al lampione ', lamp.id, 'e va verso ', direction, 'al lampione',
-        #       lamp.neigh[direction].id, 'con ttl ', ttl)
+
         if ttl > 0:  # controllo se la macchina ha ancora time to live
             nextLamp = lamp.neigh[direction]
-            fault2=False
-            for item2 in nextLamp.neigh.values():
-                if item2.getState() == 'fail':
-                    fault2 = True
-            if nextLamp.getState() != 'fail':
-                nextLamp.setLevel(self.scheduler.lampValueCar(self.clock, fault2),self.clock)
-                if nextLamp not in self.lampsOn:
-                    self.lampsOn.append(nextLamp)
-            else:
-                lamp.setLevel(self.scheduler.lampValueCar(self.clock, fault),self.clock)
+            self.lampTurnOn(nextLamp)
             try:  # next shift
                 self.fes.put((self.scheduler.shiftTime(self.clock), self.shift,
-                            (nextLamp, nextLamp.randomNeigh(direction), ttl - 1, carid, lamp)))
+                              (nextLamp, nextLamp.randomNeigh(direction), ttl - 1, carid, lamp)))
             except:
-                self.fes.put((self.scheduler.shiftTime(self.clock), self.out,
-                            (carid, nextLamp, lamp)))
-                # print('STA PER USCIRE FUORI DAL SISTEMA')
-
-        # print('vecchi')
-        # print([item.id for item in self.lampsOn])
-        lampsOn_temp = self.lampsOn.copy()
-        for item in self.lampsOn:
-            fault = False
-            for item2 in item.neigh.values():
-                if item2.getState() == 'fail':
-                    fault = True
-            flag = 0
-            for neigh in item.neigh.values():
-                if neigh.busy > 0 or item.busy > 0:
-                    flag = 1
-            if flag == 0:
-                item.setLevel(self.scheduler.lampValueBase(self.clock, fault),self.clock)
-                lampsOn_temp.remove(item)
-        self.lampsOn = lampsOn_temp.copy()
-        # print('nuovi')
-        # print([item.id for item in self.lampsOn])
-        # print('i lampioni accesi sono : ', [(item.id, item.lev) for item in self.lampsOn])
-
-    def out(self, attributes):
-        carid, lamp, arrival_lamp = attributes
-        fault = False
-        for item in lamp.neigh.values():
-            if item.getState() == 'fail':
-                fault = True
-        # print('la macchina ',carid,' sparisce dopo il lampione', lamp.id)
-        arrival_lamp.setBusy(0)  # setto il lampione di arrivo a 0 (non ho auto)
-        # flag = 0
-        # for neigh in lamp.neigh.values():
-        #     if neigh.busy > 0:
-        #         flag = 1
-        #     else:
-        #         neigh.setLevel(self.scheduler.lampValueBase(self.clock, fault))
-        # if flag == 0:
-        #     lamp.setLevel(self.scheduler.lampValueBase(self.clock, fault))
-        #     self.lampsOn.remove(lamp)
-
-        
-        lampsOn_temp = self.lampsOn.copy()
-        for item in self.lampsOn:
-            flag = 0
-            for neigh in item.neigh.values():
-                if neigh.busy > 0:
-                    flag = 1
-            if flag == 0:
-                item.setLevel(self.scheduler.lampValueBase(self.clock, fault),self.clock)
-                lampsOn_temp.remove(item)
-        self.lampsOn = lampsOn_temp.copy()
+                lamp.setBusy(0)
+        else:
+            lamp.setBusy(0)
+        self.disableLamps()
 
 
-        # print('i lampioni accesi sono : ', [(item.id, item.lev) for item in self.lampsOn])
+
+
+
 
     def arrival(self, attributes):
-
-        """--->setto la luminosità di tutti i lampioni intorno"""
         lamp, direction, ttl, carid = attributes
 
-        # print('arriva la macchina ', carid, 'al lampione ', lamp.id,' al tempo ', self.clock, 'e si sposta verso ',
-        #       direction, ',verso il lampione ', lamp.neigh[direction].id, 'con ttl ', ttl)
-
-        fault = False
-        for item in lamp.neigh.values():
-            if item.getState() == 'fail':
-                fault = True
-        if lamp.getState() != 'fail':
-            lamp.setLevel(self.scheduler.lampValueCar(self.clock, fault),self.clock)
-            if lamp not in self.lampsOn:
-                self.lampsOn.append(lamp)
-        else: fault = True
-
+        self.lampTurnOn(lamp)  # accendo il lampione e lo setto busy
         lamp.setBusy(1)
-        for neigh in lamp.neigh.values():
-            if neigh.getState() != 'fail':
-                neigh.setLevel(self.scheduler.lampValueCar(self.clock, fault),self.clock)
-                if neigh not in self.lampsOn:
-                    self.lampsOn.append(neigh)
-            else: #qui
-                lamp.setLevel(self.scheduler.lampValueCar(self.clock, fault),self.clock)
-        # print('i lampioni accesi sono : ', [(item.id, item.lev) for item in self.lampsOn])
-        """--->schedulo il prossimo shift"""
+        for neigh in lamp.neigh.values():  # accendo tutti i vicini
+            self.lampTurnOn(neigh)
         try:
             nextLamp = lamp.neigh[direction]
             self.fes.put((self.scheduler.shiftTime(self.clock), self.shift,
@@ -188,8 +104,6 @@ class Simulation:
                            ttl - 1, carid, lamp)))
         except:
             pass
-
-        """--> schedulo il next arrival"""
         nextArrival = self.city.randomLamp()
         try:
             self.fes.put((self.scheduler.arrivalTime(self.clock), self.arrival,
@@ -199,32 +113,75 @@ class Simulation:
             pass
         self.narrivi += 1
 
+
+
+
     def failure(self, attributes):
 
         lamp = attributes
-        lamp.setLevel(0,self.clock)
+        lamp.setLevel(0, self.clock)
         lamp.setState('fail')
-        # print('\n\n Cè STATO UN FAULT NEL LAMPIONE ', lamp.id)
+
         for neigh in lamp.neigh.values():
             if neigh.getState() != 'fail':
-                neigh.setLevel(self.scheduler.lampValueBase(self.clock, True),self.clock)
+                neigh.setLevel(self.scheduler.lampValueBase(self.clock, True), self.clock)
         self.fes.put((self.clock + expovariate(1.0 / self.scheduler.repair_parameter), self.repair, lamp))
         """schedule next failure"""
         nextLamp = self.city.searchLampById(randint(0, self.city.lampsCount - 1))
         self.fes.put((self.clock + expovariate(1.0 / self.scheduler.fail_parameter), self.failure, nextLamp))
         self.nfails += 1
 
+
+
+
+
+
+
+
     def repair(self, attributes):
         lamp = attributes
-        # print('\n\n Cè STATO LA RIPARAZIONE DEL  LAMPIONE ', lamp.id)
-        lamp.setState('ok')
-        lamp.setLevel(self.scheduler.lampValueBase(self.clock, False),self.clock)
+        lamp.setState('on')
+        lamp.setLevel(self.scheduler.lampValueBase(self.clock, False), self.clock)
         for neigh in lamp.neigh.values():
             flag = False
-            for el in self.lampsOn: 
-                if neigh == el: 
-                    neigh.setLevel(self.scheduler.lampValueCar(self.clock, False),self.clock)
+            for el in self.lampsOn:
+                if neigh == el:
+                    neigh.setLevel(self.scheduler.lampValueCar(self.clock, False), self.clock)
                     flag = True
-            if flag == False:  
-                neigh.setLevel(self.scheduler.lampValueBase(self.clock, False),self.clock)
-                
+            if not flag:
+                neigh.setLevel(self.scheduler.lampValueBase(self.clock, False), self.clock)
+
+
+
+
+
+
+    def lampTurnOn(self, lamp):
+        """accendo il lampione, in base al valore dei vicini, e ritorno se l'operazione ha avuto successo"""
+        # controllo se tra i vicini c'è un fault
+        fault = lamp.checkNeighState()
+
+        # se il mio lampione è funzionante, aggiunsto il valore in base anche ai vicini
+        if lamp.getState() != 'fail':
+            lamp.setLevel(self.scheduler.lampValueCar(self.clock, fault), self.clock)
+            if lamp not in self.lampsOn:
+                self.lampsOn.append(lamp)
+
+
+
+
+
+
+    def disableLamps(self):
+        """controlla se ci sono lampioni idle che devono essere rimessi al valore base"""
+        lampsOn_temp = self.lampsOn.copy()
+        for item in self.lampsOn:
+            fault = item.checkNeighState()
+            flag = 0
+            for neigh in item.neigh.values():
+                if neigh.busy > 0 or item.busy > 0:
+                    flag = 1
+            if flag == 0:
+                item.setLevel(self.scheduler.lampValueBase(self.clock, fault), self.clock)
+                lampsOn_temp.remove(item)
+        self.lampsOn = lampsOn_temp.copy()
