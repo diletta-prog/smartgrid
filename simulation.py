@@ -149,8 +149,7 @@ class Simulation:
     def arrival(self, attributes):
         """arriva una nuova macchina, accendo il lampione e tutti i suoi vicini, schedulo il prossio shift e arrivo"""
         if self.flag:
-            try: lamp, direction, ttl, carid = attributes
-            except: pass
+            lamp, direction, ttl, carid = attributes
             self.lampTurnOn(lamp)  # accendo il lampione e lo setto busy
             lamp.setBusy(1)
             for neigh in lamp.neigh.values():  self.lampTurnOn(neigh) #accendo tutti i vicini

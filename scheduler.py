@@ -14,20 +14,6 @@ class Scheduler:
         self.index_day = 0
         self.day = 0    # giorni in secondi
 
-    def checksuntime(self, clock):
-        flag_day = False
-        flag_suntime = True
-        if clock >= (86400*(self.index_day+1)): # controllo se ho passato la mezzanotte
-            self.newDay()
-            flag_day = True
-        row = self.dati.iloc[self.day]
-        if row['SUNRISE'] < clock < row['SUNSET']:
-            flag_suntime = False
-        return flag_suntime, flag_day
-
-
-
-
 
     def shiftTime(self, clock):
         for index, el in self.shift_parameters[self.hist_shift_index:].iterrows():
@@ -36,6 +22,8 @@ class Scheduler:
                 break
         self.hist_shift_index = index
         return clock + expovariate(shift_parameter)
+
+
 
     def arrivalTime(self, clock):
         for index, el in self.arrival_parameters[self.hist_arrival_index:].iterrows():
@@ -47,11 +35,6 @@ class Scheduler:
 
 
 
-
-    def newDay(self):
-        self.index_day += 1
-        self.day = self.dati.index[self.index_day]
-
     def fail_parameter(self):
         return self.fail_parameter
 
@@ -59,8 +42,6 @@ class Scheduler:
         return self.repair_parameter
 
 
-    def Value(self,clock):
-         return
 
     def lampValueCar(self, clock, fault):
         lamp_value=0
@@ -73,8 +54,6 @@ class Scheduler:
                 break
         self.hist_value_index = index
         return lamp_value
-
-
 
 
 
