@@ -1,4 +1,5 @@
 from random import choice
+import numpy as np
 
 from directions import opposite
 
@@ -25,6 +26,9 @@ class Lamp:
         self.utilization = 0    # tempo di utilizzo
         self.power_utilization = 0  # wattOra consumati
         self.time_on = 0    # orario di accensione
+        self.list_lev = []
+        self.list_clock = []
+        self.cambi = 0 
 
 
     def clearLamps(self):
@@ -68,12 +72,30 @@ class Lamp:
         elif busy == -1:
             self.busy = 0
         
+    def load_profile(self):
+        lev = np.array(self.list_lev)
+        clk = np.array(self.list_clock)
+        return (self.list_lev, self.list_clock)
+
+    def getCambio(self):
+        return self.cambi
 
     def setLevel(self, newLevel, clock):
+        self.cambi +=1 
+
         if self.lev != 0:
+            self.list_lev.append(self.lev)
+            self.list_clock.append(clock-1)
             self.consumption(clock)
         self.setTimeOn(clock)
+        if int(self.lev) == 0: 
+            self.list_lev.append(0)
+            self.list_clock.append(clock-1)
+
         self.lev = newLevel
+
+        self.list_lev.append(newLevel)
+        self.list_clock.append(clock)
 
     def setState(self, newState):
         self.state = newState

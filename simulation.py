@@ -1,6 +1,7 @@
 from queue import PriorityQueue
 from random import randint, expovariate, choice, seed
 import random as rd
+import matplotlib.pyplot as plt
 
 from scheduler import Scheduler
 
@@ -54,6 +55,18 @@ class Simulation:
          if lamps not in self.lampsOn and lamps.getState() != 'fail']
         self.fes.put((self.clock + 24 * 3600,1, self.midnight, None))  # schedulo la prossima mezzanotte
 
+        # maxCambi = 0 
+        # for lamp in self.city.allLamps():
+        #     if maxCambi < lamp.getCambio():  
+        #         maxCambi = lamp.getCambio()
+        #         id_c = lamp.getID()
+        # print('ID ', id_c, ' cambi ', maxCambi)
+        levs, clk = self.city.searchLampById(783).load_profile()
+        print(levs,'\n',clk)
+        plt.plot(clk, levs)
+        plt.show()
+    
+
 
 
 
@@ -72,7 +85,6 @@ class Simulation:
         self.fes.put((self.clock + 12 * 3600, 3,self.arrival, (nextlamp, nextlamp.randomNeigh(), randint(3, 10), 1)))   # carid da aggiustare
         value=self.scheduler.nextSunrise()
         self.fes.put((value,1, self.sunrise, None))  # schedule next sunrise
-
 
 
 

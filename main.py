@@ -40,7 +40,7 @@ if __name__ == '__main__':
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], ]
 
-    prova = City(np.array(m3), dati)
+    prova = City(np.array(matrix), dati)
     
     fail=10000
     repair=200
@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     # print(prova.matrix[2][2].neigh)
     '''--->simulazione'''
-    duration = 3600*24*360#  1 ora
+    duration = 3600*24*2    #  1 ora
     sim = Simulation(schedules, duration, prova)
     sim.start()
 
