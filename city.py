@@ -24,6 +24,9 @@ class City:
         for lamp in self.matrix[self.matrix != None]:
             self.checkNeighs(lamp, np.where(self.matrix == lamp))
 
+    def allLamps(self):
+        return [lamp for lamp in self.matrix[self.matrix != None]]
+
     def addLamp(self, pos):
         self.matrix[pos[0]][pos[1]] = Lamp(self.lampsCount, pos)  # inserisco oggetto lampione
         self.lampioni.append(Lamp(self.lampsCount, pos).getID())

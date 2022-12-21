@@ -62,8 +62,8 @@ if __name__ == '__main__':
         return total_consumption
 
     a,b = prova.totalConsumption()
-    print('Energia totale consumata = ',a)
-    print('Secondi totali accese = ',b)
+    print('Energia totale consumata = ',a/1000)
+    print('Secondi totali accese = ',b/3600)
     print('PV = ',totEnergyPv(dati,200))
 
     
