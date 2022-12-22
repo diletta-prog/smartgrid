@@ -12,7 +12,7 @@ class Scheduler:
         self.hist_shift_index = 0
         self.hist_arrival_index = 0
         self.index_day = 0
-        self.day = 0  # giorni in secondi
+        self.day = 0  # day in seconds
         self.sunrise_flag = 1
         self.sunset_flag = 1
 
@@ -53,7 +53,7 @@ class Scheduler:
     def lampValueBase(self, clock, fault):
         lamp_value = 0
         for index, el in self.dati[
-                         self.hist_value_index:].iterrows():  # da controllare se possiamo lasciare hist_value_index
+                         self.hist_value_index:].iterrows():
             if clock < el['DATA']:
                 if fault == True:
                     lamp_value = el['FAILURE_LUM_MIN']

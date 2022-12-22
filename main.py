@@ -7,38 +7,13 @@ import sys
 if __name__ == '__main__':
     ''' due fasi: prima la costruzione della città, poi la simulazione'''
 
-    #
     # sys.stdout = sys.stderr = open('logfile', 'a')
     dati = pd.read_csv('data.csv')
     lbd = pd.read_csv('lambda.csv')
     shif_pars = pd.read_csv('shift.csv')
     
-    matrix = pd.read_csv("matrice_torino.csv", sep=';', header=0, index_col=None).to_numpy()
-
     '''---> costruzione della città'''
-    m = [[0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-         [0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-         [0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-         [0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-         [0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-         [0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-         [0, 0, 1, 0, 0, 0, 1, 0, 0, 0], ]
-
-    m2 = [[1, 0, 0], [1, 0, 0], [1, 0, 0]]
-
-    m3 =[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], ]
+    matrix = pd.read_csv("matrice_torino.csv", sep=';', header=0, index_col=None).to_numpy()
 
     prova = City(np.array(matrix), dati)
     
@@ -47,15 +22,14 @@ if __name__ == '__main__':
     schedules = Scheduler(dati, shif_pars, lbd, fail, repair)
     prova.build()
 
-    # print(prova.matrix[2][2].neigh)
-    '''--->simulazione'''
-    duration = 3600*24*2    #  1 ora
+    '''--->setting of simulation'''
+    duration = 3600*24*365 #1 year    
     sim = Simulation(schedules, duration, prova)
     sim.start()
 
     def energyPV(start,end,power):
-        t = end-start # start e end in secondi!!!!
-        return int(0.8*t/3600*power)    # mi restituisce i WattORA
+        t = end-start 
+        return int(0.8*t/3600*power)    #return Wh
         
     def totEnergyPv(df,power):
         total_consumption = 0
@@ -64,9 +38,9 @@ if __name__ == '__main__':
         return total_consumption
 
     a,b = prova.totalConsumption()
-    print('Energia totale consumata = ',a/1000)
-    print('Secondi totali accese = ',b/3600)
-    print('PV = ',totEnergyPv(dati,200))
+    print('Total of energy = ',a/1000)
+    print('total switch-on hours = ',b/3600)
+    print('Total energy from photovoltaic panels = ',totEnergyPv(dati,200))
 
     
     
