@@ -1,4 +1,5 @@
 from random import choice
+import numpy as np
 
 from directions import opposite
 
@@ -16,15 +17,15 @@ class Lamp:
 
     def __init__(self, id, pos, power_max=100, lev=0, stato='ok'):
         self.id = id  # id
-        self.pos = pos  # posizione nella matrice
-        self.lev = lev  # livello intensità
-        self.state = stato  # stato (ok, fail)
-        self.power_max = power_max  # potenza massima lampadina
-        self.neigh = {}  # ID lampioni vicini
+        self.pos = pos  # position in matrix
+        self.lev = lev  # level of intensity
+        self.state = stato  # state: ok, fail
+        self.power_max = power_max  # max power of lamp
+        self.neigh = {}  # ID neighbours
         self.busy = 0
-        self.utilization = 0    # tempo di utilizzo
-        self.power_utilization = 0  # wattOra consumati
-        self.time_on = 0    # orario di accensione
+        self.utilization = 0    # time of utilization
+        self.power_utilization = 0  # Wh consumed
+        self.time_on = 0    # time in wich we turned on
 
 
     def clearLamps(self):
@@ -68,6 +69,8 @@ class Lamp:
         elif busy == -1:
             self.busy = 0
         
+    def getCambio(self):
+        return self.cambi
 
     def setLevel(self, newLevel, clock):
         if self.lev != 0:
@@ -89,7 +92,6 @@ class Lamp:
         if exclude is None:
             return choice(list(self.neigh.keys()))
         else:
-            #print(list(filter(lambda x: x != opposite(exclude), self.neigh.keys())))
             return choice(list(filter(lambda x: x != opposite(exclude), self.neigh.keys())))
 
     def consumption(self, clock):
