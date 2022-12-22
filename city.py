@@ -75,10 +75,20 @@ class City:
     def totalConsumption(self):
         energy = 0
         hour = 0
+        single = 0
         for lamp in self.matrix[self.matrix != None]:
+            single = lamp.getUtilization()
             energy += lamp.getPowerUtilization()
             hour += lamp.getUtilization()
-        return energy, hour
+        return energy, hour, single
+
+    def totalConsumptionNoSchedule(self,powerLED):
+        energy = 0
+        time = 0
+        for i in range(len(self.dati)):
+            energy +=  (int(self.dati.at[i,'SUNSET']) - int(self.dati.at[i,'SUNRISE']))/3600 * powerLED
+            time += (int(self.dati.at[i,'SUNSET']) - int(self.dati.at[i,'SUNRISE']))
+        return energy,time
 
 
 

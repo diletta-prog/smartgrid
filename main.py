@@ -40,16 +40,16 @@ if __name__ == '__main__':
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], ]
 
-    prova = City(np.array(m3), dati)
+    prova = City(np.array(matrix), dati)
     
-    fail=10000
+    fail=1000
     repair=200
     schedules = Scheduler(dati, shif_pars, lbd, fail, repair)
     prova.build()
 
     # print(prova.matrix[2][2].neigh)
     '''--->simulazione'''
-    duration = 3600*24*360#  1 ora
+    duration = 3600*24
     sim = Simulation(schedules, duration, prova)
     sim.start()
 
@@ -57,16 +57,31 @@ if __name__ == '__main__':
         t = end-start # start e end in secondi!!!!
         return int(0.8*t/3600*power)    # mi restituisce i WattORA
         
-    def totEnergyPv(df,power):
+    def totEnergyPv(df,power,battery):
         total_consumption = 0
         for i in range(len(df)):
             total_consumption += energyPV(df.at[i,'SUNRISE'],df.at[i,'SUNSET'],df.at[i,'PV']*power)
-        return total_consumption
+        if total_consumption > (battery*len(df)):
+            return battery*len(df)
+        else:
+            return total_consumption
 
-    a,b = prova.totalConsumption()
-    print('Energia totale consumata = ',a/1000)
-    print('Secondi totali accese = ',b/3600)
-    print('PV = ',totEnergyPv(dati,200))
+    a,b,c = prova.totalConsumption()
+    print('Total energy consumption all lamps = ',a/1000,'kWh')
+    print('Total hour on all lamps = ',b/3600,'hours')
+    print('Total hours of single lamps = ',c/3600,'hours')
+    nLampsPV=100
+    battery=300
+    powerPV=30
+    print('Energy saved (one year) with PV panel, single lamp = ',totEnergyPv(dati,powerPV,battery)/1000,'kWh')
+    print('Energy saved (one year) with PV panel,',nLampsPV,'lamps = ',nLampsPV*totEnergyPv(dati,powerPV,battery)/1000,'kWh')
+    powerLed = 100
+    totalLamps=2334
+    x,y=prova.totalConsumptionNoSchedule(powerLed)
+    print('Total energy consumption without scheduling (single lamp) = ',x/1000,'kWh')
+    print('Total energy consumption without scheduling (all lamp) = ',x*totalLamps/1000,'kWh')
+    print('Total hours without scheduling (single lamp) = ',y/3600,'hours')
+    print('Total hours without scheduling (all lamp) = ',y*totalLamps/3600,'hours')
 
     
     
